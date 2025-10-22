@@ -16,6 +16,8 @@ Usage of apodwall:
   -T duration
         HTTP request timeout (default 30s)
   -a    Display APOD (Astronomy Picture of the Day) image URL
+  -k string
+        NASA API key (overrides DATA_GOV_API_KEY environment variable)
   -n    Display random NASA image URL
   -q string
         Search query for NASA images (default "sun")
