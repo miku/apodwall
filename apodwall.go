@@ -30,8 +30,8 @@ var (
 	apodFlag      = flag.Bool("a", false, "Display APOD (Astronomy Picture of the Day) image URL")
 	nasaFlag      = flag.Bool("n", false, "Display random NASA image URL")
 	wallpaperFlag = flag.Bool("w", false, "Set the image as wallpaper (downloads and caches the image)")
-	query         = flag.String("q", "mars", "Search query for NASA images")
-	timeout       = flag.Duration("timeout", 30*time.Second, "HTTP request timeout")
+	query         = flag.String("q", "sun", "Search query for NASA images")
+	timeout       = flag.Duration("T", 30*time.Second, "HTTP request timeout")
 )
 
 // APOD represents the Astronomy Picture of the Day
@@ -69,12 +69,9 @@ type NASAImageCollection []string
 
 func main() {
 	flag.Parse()
-
-	// Initialize HTTP client with timeout
 	httpClient = &http.Client{
 		Timeout: *timeout,
 	}
-
 	if err := initCacheDir(); err != nil {
 		log.Fatal("could not create cache dir")
 	}
