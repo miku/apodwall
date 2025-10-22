@@ -24,12 +24,14 @@ const (
 )
 
 var cacheDir string
+var httpClient *http.Client
 
 var (
 	apodFlag      = flag.Bool("a", false, "Display APOD (Astronomy Picture of the Day) image URL")
 	nasaFlag      = flag.Bool("n", false, "Display random NASA image URL")
 	wallpaperFlag = flag.Bool("w", false, "Set the image as wallpaper (downloads and caches the image)")
 	query         = flag.String("q", "mars", "Search query for NASA images")
+	timeout       = flag.Duration("timeout", 30*time.Second, "HTTP request timeout")
 )
 
 // APOD represents the Astronomy Picture of the Day
@@ -67,6 +69,12 @@ type NASAImageCollection []string
 
 func main() {
 	flag.Parse()
+
+	// Initialize HTTP client with timeout
+	httpClient = &http.Client{
+		Timeout: *timeout,
+	}
+
 	if err := initCacheDir(); err != nil {
 		log.Fatal("could not create cache dir")
 	}
@@ -155,7 +163,7 @@ func fetchAPOD(apiKey string, setWallpaper bool) error {
 
 // fetchAndCacheAPOD fetches APOD data and caches it
 func fetchAndCacheAPOD(url, cachePath string, apod *APOD) error {
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return fmt.Errorf("failed to fetch APOD: %w", err)
 	}
@@ -179,7 +187,7 @@ func fetchAndCacheAPOD(url, cachePath string, apod *APOD) error {
 // fetchNASAImage fetches and displays a random NASA image URL
 func fetchNASAImage(query string, setWallpaper bool) error {
 	url := fmt.Sprintf("%s?media_type=image&q=%s", nasaImagesURL, query)
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return fmt.Errorf("failed to fetch NASA images: %w", err)
 	}
@@ -207,7 +215,7 @@ func fetchNASAImage(query string, setWallpaper bool) error {
 		randomIdx = rand.Intn(len(items))
 		item      = items[randomIdx]
 	)
-	collResp, err := http.Get(item.Href)
+	collResp, err := httpClient.Get(item.Href)
 	if err != nil {
 		return fmt.Errorf("failed to fetch image collection: %w", err)
 	}
@@ -253,7 +261,7 @@ func downloadAndCacheImage(imageURL string) (string, error) {
 	if _, err := os.Stat(cachePath); err == nil {
 		return cachePath, nil
 	}
-	resp, err := http.Get(imageURL)
+	resp, err := httpClient.Get(imageURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to download image: %w", err)
 	}
