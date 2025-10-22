@@ -1,8 +1,8 @@
 # apodwall
 
 APOD wallpaper fetcher and wallpaper switcher. Inspired by
-[nasa-wallpaper](https://github.com/davidpob99/nasa-wallpaper), mostly written
-by claude.
+[nasa-wallpaper](https://github.com/davidpob99/nasa-wallpaper), mostly ported
+and written by claude, reviewed by me.
 
 ```
 $ go install github.com/miku/apodwall@latest
