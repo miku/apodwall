@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/adrg/xdg"
 )
 
 const (
@@ -32,6 +34,7 @@ var (
 	wallpaperFlag = flag.Bool("w", false, "Set the image as wallpaper (downloads and caches the image)")
 	query         = flag.String("q", "sun", "Search query for NASA images")
 	timeout       = flag.Duration("T", 30*time.Second, "HTTP request timeout")
+	apiKey        = flag.String("k", "", "NASA API key (overrides DATA_GOV_API_KEY environment variable)")
 )
 
 // APOD represents the Astronomy Picture of the Day
@@ -75,13 +78,16 @@ func main() {
 	if err := initCacheDir(); err != nil {
 		log.Fatal("could not create cache dir")
 	}
-	apiKey := os.Getenv("DATA_GOV_API_KEY")
-	if apiKey == "" {
-		apiKey = defaultAPIKey
+	key := *apiKey
+	if key == "" {
+		key = os.Getenv("DATA_GOV_API_KEY")
+	}
+	if key == "" {
+		key = defaultAPIKey
 	}
 	switch {
 	case *apodFlag:
-		if err := fetchAPOD(apiKey, *wallpaperFlag); err != nil {
+		if err := fetchAPOD(key, *wallpaperFlag); err != nil {
 			fmt.Fprintf(os.Stderr, "Error fetching APOD: %v\n", err)
 			os.Exit(1)
 		}
@@ -98,15 +104,7 @@ func main() {
 
 // initCacheDir initializes the cache directory using XDG spec
 func initCacheDir() error {
-	cacheHome := os.Getenv("XDG_CACHE_HOME")
-	if cacheHome == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return fmt.Errorf("failed to get home directory: %w", err)
-		}
-		cacheHome = filepath.Join(homeDir, ".cache")
-	}
-	cacheDir = filepath.Join(cacheHome, cacheSubdir)
+	cacheDir = filepath.Join(xdg.CacheHome, cacheSubdir)
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
